@@ -20,9 +20,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools Core Quick Widgets Xml Core5Compat)
 find_package(Qt${QT_VERSION_MAJOR} 6.6 REQUIRED COMPONENTS Widgets LinguistTools Core Quick Widgets Xml Core5Compat)
 find_package(robin_hood REQUIRED)
-
-add_subdirectory("C:/PCL 1.13.1/3rdParty/pugixml" pugixml.out)
-add_subdirectory("../../nanlink_client/QArtNet" QArtNet.out)
+find_package(RtMidi REQUIRED CONFIG)
 
 #qt_standard_project_setup(REQUIRES 6.6)
 file(GLOB ${PROJECT_NAME_UPPER}_1st_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src/1st/*")
@@ -84,9 +82,8 @@ endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt6::Core5Compat
-    pugixml::pugixml
     robin_hood::robin_hood
-    QArtNet::QArtNet
+    RtMidi::rtmidi
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -124,4 +121,3 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/6th
     ${3rdParty_DIR}/rapidjson-1.1.0
 )
-

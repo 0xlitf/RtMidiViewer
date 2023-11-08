@@ -8,7 +8,8 @@
 #include <QStyleOption>
 #include <QRandomGenerator>
 #include <QApplication>
-// #include "centralstackedwidget.h"
+#include <QPushButton>
+#include <RtMidi.h>
 
 
 class RoundWidget: public QWidget {
@@ -70,5 +71,5 @@ protected:
     }
 
 private:
-    // CentralStackedWidget* m_stacked = new CentralStackedWidget(this);
+    QPushButton* m_button = new QPushButton(this);
 };

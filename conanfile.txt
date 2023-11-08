@@ -1,5 +1,6 @@
 [requires]
 robin-hood-hashing/3.11.5
+rtmidi/6.0.0
 
 [generators]
 CMakeDeps
