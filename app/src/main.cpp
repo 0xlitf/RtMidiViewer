@@ -161,19 +161,6 @@ int main(int argc, char *argv[]) {
     MainWindow w;
     w.show();
 
-    QList<QScreen *> screens = QGuiApplication::screens();
-    if (screens.size() > 1) {
-        const QRect secondScreenGeometry = screens.at(1)->availableGeometry();
-        QRect frameGeometry = w.frameGeometry();
-        int titleBarHeight = frameGeometry.height() - w.geometry().height();
-
-        int x = secondScreenGeometry.x() + secondScreenGeometry.width() / 2 - w.geometry().width() / 2;
-        int y = secondScreenGeometry.y() + secondScreenGeometry.height() / 2 - w.geometry().height() / 2;
-
-        qDebug() << "secondScreenGeometry: " << secondScreenGeometry;
-        w.move(x, y);
-    }
-
     app.setProperty("RandomColor", false);
 
     try {
