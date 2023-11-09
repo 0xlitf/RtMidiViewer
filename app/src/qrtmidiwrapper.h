@@ -15,9 +15,15 @@ public:
         delete m_midiin;
     }
     void listen();
+
+    void cstyle_rtmidi();
+
+    void cppstyle_rtmidi();
+
+    void cpppointer_style_rtmidi();
+
 signals:
 
 private:
     RtMidiIn *m_midiin = new RtMidiIn();
 };
-
