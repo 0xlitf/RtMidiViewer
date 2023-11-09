@@ -71,5 +71,5 @@ protected:
     }
 
 private:
-    QPushButton* m_button = new QPushButton(this);
+    // QPushButton* m_button = new QPushButton(this);
 };

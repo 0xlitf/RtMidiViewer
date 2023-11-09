@@ -13,8 +13,12 @@
 #include <QDir>
 #include <QMutex>
 #include <QStandardPaths>
-#include <QTextStream>
+#include <iostream>
+#include <cstdlib>
+#include <vector>
+#include <signal.h>
 #include "mainwindow.h"
+#include "qrtmidiwrapper.h"
 
 void outputMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
     static QMutex mutex;
@@ -73,103 +77,154 @@ void outputMessage(QtMsgType type, const QMessageLogContext &context, const QStr
     mutex.unlock();
 }
 
-class NoFocusProxyStyle : public QProxyStyle {
-public:
-
-    NoFocusProxyStyle(QStyle *baseStyle = 0) : QProxyStyle(baseStyle) {}
-
-    void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const {
-        if(element == QStyle::PE_FrameFocusRect) {
-            return;
+void cstyle_rtmidi() {
+    if (auto midiin = rtmidi_in_create_default()) {
+        unsigned int ports = rtmidi_get_port_count(midiin);
+        printf("MIDI input ports found: %u\n", ports);
+        qDebug() << "MIDI input ports found: " << ports;
+        for (int i = 0; i < ports; ++i) {
+            char bufOut[256];
+            int bufLen = sizeof(bufOut);
+            int out = rtmidi_get_port_name(midiin, i, bufOut, &bufLen);
+            qDebug() << QString("midiin.getPortName %1%2: %3").arg(i).arg(QString::fromLocal8Bit(bufOut));
         }
-        QProxyStyle::drawPrimitive(element, option, painter, widget);
-    }
-};
-
-int main(int argc, char *argv[]) {
-    QApplication app(argc, argv);
-    qSetMessagePattern("File: %{file}: Line %{line}: \n>> %{message}\n");
-
-    if (!qgetenv("QTDIR").isEmpty()) { // start direct in QtCreator
-        qDebug() << "start in QtCreator: " << qgetenv("QTDIR");
-    } else if (!qgetenv("VSAPPIDDIR").isEmpty()) { // start direct in vs
-        qDebug() << "start in vs: " << qgetenv("VSAPPIDDIR");
-    } else {
-        qInstallMessageHandler(outputMessage);
+        rtmidi_close_port(midiin);
+        rtmidi_in_free(midiin);
     }
 
-    app.setStyle(new NoFocusProxyStyle);
-
-    /*
-        QTableView {
-            outline: 0;
-            border: none;
+    if (auto midiout = rtmidi_out_create_default()) {
+        unsigned int ports = rtmidi_get_port_count(midiout);
+        qDebug() << "MIDI output ports found: " << ports;
+        for (int i = 0; i < ports; ++i) {
+            char bufOut[256];
+            int bufLen = sizeof(bufOut);
+            int out = rtmidi_get_port_name(midiout, i, bufOut, &bufLen);
+            qDebug() << QString("midiout.getPortName %1: %2").arg(i).arg(QString::fromLocal8Bit(bufOut));
         }
-        QTableView::item { border: none; }
-    */
-    app.setStyleSheet(R"(
-        QMenuBar {
-            background-color: gray;
-            color: white;
-        }
-        QMenuBar::hover {
-            background-color: rgba(128,128,128,1);
-            color: yellow;
-        }
-        QMenuBar::selected {
-            background-color: rgba(255,0,0,1);
-            color: yellow;
-        }
-        QMenuBar::item {
-            font-size:12px;
-            font-family:Microsoft YaHei;
-            background-color: rgba(60,60,60,1);
-            color:rgba(255,255,255,1);
-        }
-        QMenu {
-            background-color:rgba(17,24,47,1);
-            border:1px solid rgba(70, 70, 70, 1);
-        }
-        QMenu::item {
-            min-width:50px;
-            font-size: 12px;
-            color: rgb(225,225,225);
-            background:rgba(75,120,154,0.5);
-            border:1px solid rgba(70, 70, 70, 1);
-            padding:1px 1px;margin:1px 1px;
-        }
-        QMenu::item:selected {
-            background:rgba(70, 70, 70, 1);
-            border:1px solid rgba(70, 70, 70, 1);
-        }
-        QMenu::item:pressed {
-            background:rgba(70, 70, 70, 0.4);
-            border:1px solid rgba(70, 70, 70, 1);
-        }
-    )");
-
-    QTranslator translator;
-    const QStringList uiLanguages = QLocale::system().uiLanguages();
-    for (const QString &locale : uiLanguages) {
-        const QString baseName = "i18n_" + QLocale(locale).name();
-        if (translator.load(":/i18n/" + baseName)) {
-            app.installTranslator(&translator);
-            break;
-        }
+        rtmidi_close_port(midiout);
+        rtmidi_out_free(midiout);
     }
+}
 
-    MainWindow w;
-    w.show();
-
-    app.setProperty("RandomColor", false);
-
+void cppstyle_rtmidi() {
     try {
-        qDebug() << "Version: " << RtMidi::getVersion();
+        qDebug() << "RtMidi::getVersion: " << RtMidi::getVersion();
         RtMidiIn midiin;
+        for (int i = 0; i < midiin.getPortCount(); ++i) {
+            qDebug() << "midiin.getPortName # " << i << ": " << midiin.getPortName(i);
+        }
+        RtMidiOut midiout;
+        for (int i = 0; i < midiout.getPortCount(); ++i) {
+            qDebug() << "midiout.getPortName # " << i << ": " << midiout.getPortName(i);
+        }
+
     } catch (RtMidiError &error) {
         // Handle the exception here
         error.printMessage();
     }
+}
+
+void cpppointer_style_rtmidi() {
+    RtMidiIn *midiin = nullptr;
+    RtMidiOut *midiout = nullptr;
+
+    // RtMidiIn constructor
+    try {
+        midiin = new RtMidiIn();
+    } catch (RtMidiError &error) {
+        error.printMessage();
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned int nPorts = midiin->getPortCount();
+    qDebug() << "There are " << nPorts << " MIDI input sources available.";
+    std::string portName;
+    for (unsigned int i = 0; i < nPorts; i++) {
+        try {
+            portName = midiin->getPortName(i);
+        } catch (RtMidiError &error) {
+            error.printMessage();
+            goto cleanup;
+        }
+        qDebug() << "  Input Port #" << i + 1 << ": " << portName;
+    }
+
+    // RtMidiOut constructor
+    try {
+        midiout = new RtMidiOut();
+    } catch (RtMidiError &error) {
+        error.printMessage();
+        exit(EXIT_FAILURE);
+    }
+
+    // Check outputs.
+    nPorts = midiout->getPortCount();
+    qDebug() << "There are " << nPorts << " MIDI output ports available.";
+    for (unsigned int i = 0; i < nPorts; i++) {
+        try {
+            portName = midiout->getPortName(i);
+        } catch (RtMidiError &error) {
+            error.printMessage();
+            goto cleanup;
+        }
+        qDebug() << "  Output Port #" << i + 1 << ": " << portName;
+    }
+
+cleanup:
+    delete midiin;
+    delete midiout;
+}
+
+void mycallback(double deltatime, std::vector<unsigned char> *message, void *userData) {
+    qDebug() << "mycallback";
+    unsigned int nBytes = message->size();
+    for (unsigned int i = 0; i < nBytes; i++)
+        std::cout << "Byte " << i << " = " << (int) message->at(i) << ", ";
+    if (nBytes > 0)
+        std::cout << "stamp = " << deltatime << std::endl;
+}
+
+bool done;
+static void finish( int /*ignore*/ ){ done = true; }
+
+void midiin() {
+
+}
+
+int main(int argc, char *argv[]) {
+    setbuf(stdout,NULL);
+
+    QApplication app(argc, argv);
+
+//    if (!qgetenv("QTDIR").isEmpty()) { // start direct in QtCreator
+//        qDebug() << "start in QtCreator: " << qgetenv("QTDIR");
+//    } else if (!qgetenv("VSAPPIDDIR").isEmpty()) { // start direct in vs
+//        qDebug() << "start in vs: " << qgetenv("VSAPPIDDIR");
+//    } else {
+//        qSetMessagePattern("File: %{file}: Line %{line}: \n>> %{message}\n");
+//        qInstallMessageHandler(outputMessage);
+//    }
+
+//    QTranslator translator;
+//    const QStringList uiLanguages = QLocale::system().uiLanguages();
+//    for (const QString &locale : uiLanguages) {
+//        const QString baseName = "i18n_" + QLocale(locale).name();
+//        if (translator.load(":/i18n/" + baseName)) {
+//            app.installTranslator(&translator);
+//            break;
+//        }
+//    }
+
+    MainWindow w;
+    w.show();
+
+    // app.setProperty("RandomColor", false);
+
+    // cstyle_rtmidi();
+    // cppstyle_rtmidi();
+    // cpppointer_style_rtmidi();
+    QRtMidiWrapper midi;
+    midi.listen();
 
     return app.exec();
 }
