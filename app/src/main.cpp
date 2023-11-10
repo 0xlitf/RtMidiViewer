@@ -1,24 +1,24 @@
 
-#include <QApplication>
-#include <QLocale>
-#include <QTranslator>
-#include <QShortcut>
-#include <QObject>
-#include <QProxyStyle>
-#include <QThread>
-#include <QFile>
-#include <QTextStream>
-#include <QTextCodec>
-#include <QTime>
-#include <QDir>
-#include <QMutex>
-#include <QStandardPaths>
-#include <iostream>
-#include <cstdlib>
-#include <vector>
-#include <signal.h>
 #include "mainwindow.h"
 #include "qrtmidiwrapper.h"
+#include <QApplication>
+#include <QDir>
+#include <QFile>
+#include <QLocale>
+#include <QMutex>
+#include <QObject>
+#include <QProxyStyle>
+#include <QShortcut>
+#include <QStandardPaths>
+#include <QTextCodec>
+#include <QTextStream>
+#include <QThread>
+#include <QTime>
+#include <QTranslator>
+#include <cstdlib>
+#include <iostream>
+#include <signal.h>
+#include <vector>
 
 void outputMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
     static QMutex mutex;
@@ -26,8 +26,7 @@ void outputMessage(QtMsgType type, const QMessageLogContext &context, const QStr
 
     mutex.lock();
     if (!file.isOpen()) {
-        QString logPath{"."};
-        // = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation).append(QString::fromLocal8Bit(""));
+        QString logPath{"."}; // = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation).append(QString::fromLocal8Bit(""));
 
         QDir logDir(logPath);
 
@@ -44,8 +43,7 @@ void outputMessage(QtMsgType type, const QMessageLogContext &context, const QStr
     }
 
     QString text;
-    switch (type)
-    {
+    switch (type) {
         case QtDebugMsg:
             text = QString("Debug");
             break;
@@ -72,44 +70,37 @@ void outputMessage(QtMsgType type, const QMessageLogContext &context, const QStr
     // text_stream.setCodec("UTF-8");
     text_stream << message << "\r\n";
     file.flush();
-    //file.close();
     mutex.unlock();
 }
 
 int main(int argc, char *argv[]) {
-    setbuf(stdout,NULL);
+    setbuf(stdout, NULL);
 
     QApplication app(argc, argv);
+     app.setProperty("RandomColor", true);
 
-//    if (!qgetenv("QTDIR").isEmpty()) { // start direct in QtCreator
-//        qDebug() << "start in QtCreator: " << qgetenv("QTDIR");
-//    } else if (!qgetenv("VSAPPIDDIR").isEmpty()) { // start direct in vs
-//        qDebug() << "start in vs: " << qgetenv("VSAPPIDDIR");
-//    } else {
-//        qSetMessagePattern("File: %{file}: Line %{line}: \n>> %{message}\n");
-//        qInstallMessageHandler(outputMessage);
-//    }
+    if (!qgetenv("QTDIR").isEmpty()) { // start direct in QtCreator
+        qSetMessagePattern("File: %{file}: Line %{line}: \n>> %{message}\n");
+        qDebug() << "start in QtCreator: " << qgetenv("QTDIR");
+    } else if (!qgetenv("VSAPPIDDIR").isEmpty()) { // start direct in vs
+        qSetMessagePattern("File: %{file}: Line %{line}: \n>> %{message}\n");
+        qDebug() << "start in vs: " << qgetenv("VSAPPIDDIR");
+    } else {
+        qInstallMessageHandler(outputMessage);
+    }
 
-//    QTranslator translator;
-//    const QStringList uiLanguages = QLocale::system().uiLanguages();
-//    for (const QString &locale : uiLanguages) {
-//        const QString baseName = "i18n_" + QLocale(locale).name();
-//        if (translator.load(":/i18n/" + baseName)) {
-//            app.installTranslator(&translator);
-//            break;
-//        }
-//    }
+    QTranslator translator;
+    const QStringList uiLanguages = QLocale::system().uiLanguages();
+    for (const QString &locale : uiLanguages) {
+        const QString baseName = "i18n_" + QLocale(locale).name();
+        if (translator.load(":/i18n/" + baseName)) {
+            app.installTranslator(&translator);
+            break;
+        }
+    }
 
     MainWindow w;
     w.show();
-
-    // app.setProperty("RandomColor", false);
-
-    // cstyle_rtmidi();
-    // cppstyle_rtmidi();
-    // cpppointer_style_rtmidi();
-    QRtMidiWrapper midi;
-    midi.listen();
 
     return app.exec();
 }

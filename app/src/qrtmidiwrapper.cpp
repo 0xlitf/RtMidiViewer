@@ -1,15 +1,15 @@
 
 #include "qrtmidiwrapper.h"
-#include <QDebug>
 
 QRtMidiWrapper::QRtMidiWrapper(QObject *parent)
     : QObject{parent} {
+
 }
 
 void QRtMidiWrapper::listen() {
     unsigned int nPorts = m_midiin->getPortCount();
     if (nPorts == 0) {
-        std::cout << "No ports available!\n";
+        qDebug() << "No ports available!\n";
         return;
     } else {
         qDebug() << "nPorts: " << nPorts;
@@ -32,13 +32,30 @@ void QRtMidiWrapper::listen() {
         return;
     }
 
-    m_midiin->setCallback([](double deltatime, std::vector<unsigned char> *message, void *userData) {
-        unsigned int nBytes = message->size();
-        for (unsigned int i = 0; i < nBytes; i++)
-            std::cout << "Byte " << i << " = " << (int) message->at(i) << ", ";
-        if (nBytes > 0)
-            std::cout << "stamp = " << deltatime << std::endl;
-    });
+    m_midiin->setCallback(&QRtMidiWrapper::callback);
+
+    //m_midiin->setCallback([](double deltatime, std::vector<unsigned char> *message, void *userData) {
+        //unsigned int nBytes = message->size();
+//        QString s;
+//        QTextStream d(&s, QIODeviceBase::ReadWrite);
+
+//        qDebug() << "userData: " << userData;
+
+//        for (unsigned int i = 0; i < nBytes; i++) {
+//            qDebug() << QString::number((int) message->at(i), 16);
+//        }
+
+//        for (unsigned int i = 0; i < nBytes; i++) {
+//            d << "Byte " << i << " = " << (int) message->at(i) << ", ";
+//        }
+
+//        if (nBytes > 0) {
+//            d << "stamp = " << QString("%1").arg(deltatime, 0, 'g', 3);
+//        }
+//        qDebug().noquote() << s;
+
+        //printMessage(message);
+    //});
 
     // Don't ignore sysex, timing, or active sensing messages.
     m_midiin->ignoreTypes(false, false, false);

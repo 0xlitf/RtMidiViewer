@@ -9,8 +9,12 @@
 #include <QRandomGenerator>
 #include <QApplication>
 #include <QPushButton>
+#include <QTextEdit>
+#include <QSplitter>
 #include <RtMidi.h>
-
+#include "qrtmidiwrapper.h"
+#include "tinygroup.h"
+#include "widgetbase.h"
 
 class RoundWidget: public QWidget {
 public:
@@ -56,6 +60,7 @@ public:
 
 private:
     void createComponents();
+    void createConnections();
 
 
 protected:
@@ -72,4 +77,8 @@ protected:
 
 private:
     // QPushButton* m_button = new QPushButton(this);
+    QRtMidiWrapper m_midi;
+    QTextEdit* m_textEdit = nullptr;
+    WidgetBase* m_rightWidget = nullptr;
+    QSplitter *m_splitter = nullptr;
 };
