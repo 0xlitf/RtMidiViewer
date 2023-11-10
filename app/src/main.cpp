@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     setbuf(stdout, NULL);
 
     QApplication app(argc, argv);
-     app.setProperty("RandomColor", true);
+    app.setProperty("RandomColor", false);
 
     if (!qgetenv("QTDIR").isEmpty()) { // start direct in QtCreator
         qSetMessagePattern("File: %{file}: Line %{line}: \n>> %{message}\n");

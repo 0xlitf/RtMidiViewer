@@ -13,7 +13,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
-    this->setMinimumSize(1000, 750);
+    this->setMinimumSize(1200, 750);
     this->createComponents();
     this->createConnections();
 
@@ -41,18 +41,25 @@ void MainWindow::createComponents() {
     this->setCentralWidget(m_splitter);
 
     m_textEdit = new QTextEdit();
-    m_textEdit->setFixedWidth(400);
+    m_textEdit->setFixedWidth(500);
     m_rightWidget = new WidgetBase();
     m_splitter->addWidget(m_textEdit);
     m_splitter->addWidget(m_rightWidget);
+    QHBoxLayout *h = new QHBoxLayout(m_rightWidget);
 
+    for (int i = 0; i < 9; ++i) {
+        auto t = new TinyGroup(this);
+        h->addWidget(t);
+        m_group.append(t);
+    }
+}
+
+void MainWindow::createConnections() {
     QObject::connect(m_textEdit->verticalScrollBar(), &QScrollBar::rangeChanged, this, [this]() {
         // Scroll to the bottom whenever the range changes (e.g., new text is added)
         m_textEdit->verticalScrollBar()->setValue(m_textEdit->verticalScrollBar()->maximum());
     });
-}
 
-void MainWindow::createConnections() {
     m_midi.listen();
 
     QObject::connect(&QRtMidiWrapper::getInstance(), &QRtMidiWrapper::dataReceived, &QRtMidiWrapper::getInstance(), [this](double deltatime, QList<int> message, void *userData) {
@@ -67,5 +74,68 @@ void MainWindow::createConnections() {
 
         m_textEdit->append(s);
         qDebug().noquote() << s;
+
+        if (message.at(0) >= 224 && message.at(0) <= 232) {
+            if (m_sliderMap.contains(message.at(0))) {
+                auto slider = this->getSliderByIndex(m_sliderMap[message.at(0)]);
+                qDebug().noquote() << m_sliderMap[message.at(0)] << ", " << slider;
+                slider->setValue(message.at(1));
+            }
+        } else {
+            switch (message.at(0)) {
+                case 144: {
+                    if (m_buttonMap.contains(message.at(1))) {
+                        auto button = this->getButtonByIndex(m_buttonMap[message.at(1)]);
+                        qDebug().noquote() << m_buttonMap[message.at(1)] << ", " << button;
+                        button->setDown(message.at(2) != 0);
+                    }
+                } break;
+                case 176: {
+                    if (m_labelMap.contains(message.at(1))) {
+                        auto label = this->getLabelByIndex(m_labelMap[message.at(1)]);
+                        qDebug().noquote() << m_labelMap[message.at(1)] << ", " << label;
+
+                        int v = 0;
+                        switch (message.at(2)) {
+                            case 1: { // ++
+                            } break;
+                            case 65: { // --
+                            } break;
+                            case 127: { // 0
+                            } break;
+                            case 63: { // 127
+                            } break;
+                        }
+
+                        label->setText(QString::number(message.at(2)));
+                    }
+                } break;
+                default: {
+                    qDebug().noquote() << "uncatch Status, " << message.at(0);
+                } break;
+            }
+        }
     });
+}
+
+QPushButton *MainWindow::getButtonByIndex(int index) {
+    QPushButton *button = nullptr;
+    if (index <= 9) {
+        button = m_group[index - 1]->getTopButton();
+    } else if (index > 9) {
+        button = m_group[index - 9 - 1]->getBottomButton();
+    }
+    return button;
+}
+
+QLabel* MainWindow::getLabelByIndex(int index)
+{
+    QLabel *label = m_group[index - 1]->getLabel();
+    return label;
+}
+
+QSlider* MainWindow::getSliderByIndex(int index)
+{
+    QSlider *slider = m_group[index - 1]->getSlider();
+    return slider;
 }

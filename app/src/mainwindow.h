@@ -75,10 +75,26 @@ protected:
         QMainWindow::paintEvent(event);
     }
 
+    QPushButton* getButtonByIndex(int index);
+    QLabel* getLabelByIndex(int index);
+    QSlider* getSliderByIndex(int index);
+
 private:
     // QPushButton* m_button = new QPushButton(this);
     QRtMidiWrapper m_midi;
     QTextEdit* m_textEdit = nullptr;
     WidgetBase* m_rightWidget = nullptr;
-    QSplitter *m_splitter = nullptr;
+    QSplitter* m_splitter = nullptr;
+    QList<TinyGroup*> m_group;
+
+    QMap<int, int> m_sliderMap{
+        {224, 1}, {225, 2}, {226, 3}, {227, 4}, {228, 5}, {229, 6}, {230, 7}, {231, 8}, {232, 9}
+    };
+    QMap<int, int> m_labelMap{
+        {16, 1}, {17, 2}, {18, 3}, {19, 4}, {20, 5}, {21, 6}, {22, 7}, {23, 8}, {48, 9}
+    };
+    QMap<int, int> m_buttonMap{
+        {16, 1}, {17, 2}, {18, 3}, {19, 4}, {20, 5}, {21, 6}, {22, 7}, {23, 8}, {48, 9},
+        {8, 10}, {9, 11}, {10, 12}, {11, 13}, {12, 14}, {13, 15}, {14, 16}, {15, 17}, {49, 18}
+    };
 };
