@@ -44,7 +44,16 @@ void MainWindow::createComponents() {
     m_textEdit->setFixedWidth(500);
     m_rightWidget = new WidgetBase();
     m_splitter->addWidget(m_textEdit);
-    m_splitter->addWidget(m_rightWidget);
+
+    m_bottomWidget = new WidgetBase();
+
+    auto container = new QWidget(this);
+    QVBoxLayout *v = new QVBoxLayout(container);
+    v->addWidget(m_rightWidget);
+    v->addWidget(m_bottomWidget);
+
+    m_splitter->addWidget(container);
+
     QHBoxLayout *h = new QHBoxLayout(m_rightWidget);
 
     for (int i = 0; i < 9; ++i) {
@@ -52,6 +61,25 @@ void MainWindow::createComponents() {
         h->addWidget(t);
         m_group.append(t);
     }
+
+    QGridLayout *g = new QGridLayout(m_bottomWidget);
+    g->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    m_statusButton->setMaximumSize(80, 30);
+    m_statusButton->setStyleSheet("QPushButton:pressed { background-color: red; }");
+    m_setButton->setMaximumSize(80, 30);
+    m_clearButton->setMaximumSize(80, 30);
+    g->addWidget(m_statusButton, 0, 0);
+    g->addWidget(m_setButton, 1, 0);
+    g->addWidget(m_statusLabel, 1, 1, 1, 3);
+    connect(m_setButton, &QPushButton::clicked, this, [this](){
+        m_statusLabel->setText("Start Record");
+        m_recordMessage.clear();
+    });
+    connect(m_clearButton, &QPushButton::clicked, this, [this](){
+        m_statusLabel->setText("Cleared");
+        m_recordMessage.clear();
+    });
+    g->addWidget(m_clearButton, 2, 0);
 }
 
 void MainWindow::createConnections() {
@@ -129,6 +157,17 @@ void MainWindow::createConnections() {
                     qDebug().noquote() << "uncatch Status, " << message.at(0);
                 } break;
             }
+        }
+
+        if (!m_recordMessage.isEmpty() && (m_recordMessage[0] == message[0]) && (m_recordMessage[1] == message[1])) {
+            m_statusButton->setDown(m_recordMessage[2] == message[2]);
+        }
+
+        if (m_statusLabel->text() == "Start Record" && m_recordMessage.isEmpty()) {
+            m_recordMessage = message;
+            m_statusLabel->setText([this, &message]() {
+                return QString("%1, %2, %3").arg(QString::number(message[0]), QString::number(message[1]), QString::number(message[2]));
+            }());
         }
     });
 }

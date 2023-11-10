@@ -43,12 +43,10 @@ protected:
         painter.drawRoundedRect(bmp.rect(), 5, 5);
         setMask(bmp);
         painter.drawText(0, 0, 120, 20, 0, this->realClassName());
-
     }
 };
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -61,7 +59,6 @@ public:
 private:
     void createComponents();
     void createConnections();
-
 
 protected:
     QColor randomColor = QColor::fromRgb(QRandomGenerator::global()->generate());
@@ -87,14 +84,15 @@ private:
     QSplitter* m_splitter = nullptr;
     QList<TinyGroup*> m_group;
 
-    QMap<int, int> m_sliderMap{
-        {224, 1}, {225, 2}, {226, 3}, {227, 4}, {228, 5}, {229, 6}, {230, 7}, {231, 8}, {232, 9}
-    };
-    QMap<int, int> m_labelMap{
-        {16, 1}, {17, 2}, {18, 3}, {19, 4}, {20, 5}, {21, 6}, {22, 7}, {23, 8}, {12, 9}
-    };
-    QMap<int, int> m_buttonMap{
-        {16, 1}, {17, 2}, {18, 3}, {19, 4}, {20, 5}, {21, 6}, {22, 7}, {23, 8}, {48, 9},
-        {8, 10}, {9, 11}, {10, 12}, {11, 13}, {12, 14}, {13, 15}, {14, 16}, {15, 17}, {49, 18}
-    };
+    QMap<int, int> m_sliderMap{{224, 1}, {225, 2}, {226, 3}, {227, 4}, {228, 5}, {229, 6}, {230, 7}, {231, 8}, {232, 9}};
+    QMap<int, int> m_labelMap{{16, 1}, {17, 2}, {18, 3}, {19, 4}, {20, 5}, {21, 6}, {22, 7}, {23, 8}, {12, 9}};
+    QMap<int, int> m_buttonMap{{16, 1}, {17, 2}, {18, 3}, {19, 4}, {20, 5}, {21, 6}, {22, 7}, {23, 8}, {48, 9}, {8, 10}, {9, 11}, {10, 12}, {11, 13}, {12, 14}, {13, 15}, {14, 16}, {15, 17}, {49, 18}};
+
+    QPushButton* m_statusButton = new QPushButton("Status", this);
+    QPushButton* m_setButton = new QPushButton("Set", this);
+    QPushButton* m_clearButton = new QPushButton("Clear", this);
+    QLabel* m_statusLabel = new QLabel(this);
+    WidgetBase* m_bottomWidget = nullptr;
+
+    QList<int> m_recordMessage;
 };
