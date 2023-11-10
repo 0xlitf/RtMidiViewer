@@ -26,7 +26,7 @@ public:
 signals:
 
 private:
-    QLabel* m_label = new QLabel(this);
+    QLabel* m_label = new QLabel("0", this);
     QPushButton* m_button1 = new QPushButton(this);
     QPushButton* m_button2 = new QPushButton(this);
     QSlider* m_slider = new QSlider(this);

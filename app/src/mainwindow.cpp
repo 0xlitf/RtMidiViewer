@@ -69,7 +69,8 @@ void MainWindow::createConnections() {
         if (nBytes > 0) {
             d << "Timestamp: " << deltatime << ", Status: " << QString("%1").arg(message.at(0), 2, 16, QChar('0')) << "(int:" << message.at(0) << ")"
               << ", Data1: " << QString("%1").arg(message.at(1), 2, 16, QChar('0')) << "(int:" << message.at(1) << ")"
-              << ", Data2: " << QString("%1").arg(message.at(2), 2, 16, QChar('0')) << "(int:" << message.at(2) << ")";
+              << ", Data2: " << QString("%1").arg(message.at(2), 2, 16, QChar('0')) << "(int:" << message.at(2) << ")"
+              << ", Channel: " << QString("%1").arg((message.at(0) & 0x0F) + 1, 2, 16, QChar('0')) << "(int:" << (message.at(0) & 0x0F) + 1 << ")";
         }
 
         m_textEdit->append(s);
@@ -95,19 +96,33 @@ void MainWindow::createConnections() {
                         auto label = this->getLabelByIndex(m_labelMap[message.at(1)]);
                         qDebug().noquote() << m_labelMap[message.at(1)] << ", " << label;
 
-                        int v = 0;
-                        switch (message.at(2)) {
-                            case 1: { // ++
-                            } break;
-                            case 65: { // --
-                            } break;
-                            case 127: { // 0
-                            } break;
-                            case 63: { // 127
-                            } break;
-                        }
+                        if (m_labelMap[message.at(1)] == 9) {
+                            label->setText(QString::number(message.at(2)));
+                        } else {
+                            int v = label->text().toInt();
+                            switch (message.at(2)) {
+                                case 1: { // ++
+                                    ++v;
+                                    if (v > 127) {
+                                        v = 127;
+                                    }
+                                } break;
+                                case 65: { // --
+                                    --v;
+                                    if (v < 0) {
+                                        v = 0;
+                                    }
+                                } break;
+                                case 127: { // 0
+                                    v = 0;
+                                } break;
+                                case 63: { // 127
+                                    v = 127;
+                                } break;
+                            }
 
-                        label->setText(QString::number(message.at(2)));
+                            label->setText(QString::number(v));
+                        }
                     }
                 } break;
                 default: {

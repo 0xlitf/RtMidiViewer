@@ -10,7 +10,6 @@ TinyGroup::TinyGroup(QWidget *parent)
 }
 
 void TinyGroup::createComponents() {
-    m_label->setText("Label");
     m_label->setAlignment(Qt::AlignCenter);
     QGridLayout* g = new QGridLayout(this);
     g->addWidget(m_label, 0, 0, 1, 2);
