@@ -6,9 +6,9 @@
 #include <QMenuBar>
 #include <QPushButton>
 #include <QRandomGenerator>
-#include <QToolBar>
 #include <QScrollBar>
 #include <QSplitter>
+#include <QToolBar>
 #include <QWidgetAction>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -17,20 +17,20 @@ MainWindow::MainWindow(QWidget *parent)
     this->createComponents();
     this->createConnections();
 
-//    connect(m_button, &QPushButton::clicked, this, [this]() {
-//        QList<QScreen *> screens = QGuiApplication::screens();
-//        if (screens.size() > 1) {
-//            const QRect secondScreenGeometry = screens.at(1)->availableGeometry();
-//            QRect frameGeometry = this->frameGeometry();
-//            int titleBarHeight = frameGeometry.height() - this->geometry().height();
+    //    connect(m_button, &QPushButton::clicked, this, [this]() {
+    //        QList<QScreen *> screens = QGuiApplication::screens();
+    //        if (screens.size() > 1) {
+    //            const QRect secondScreenGeometry = screens.at(1)->availableGeometry();
+    //            QRect frameGeometry = this->frameGeometry();
+    //            int titleBarHeight = frameGeometry.height() - this->geometry().height();
 
-//            int x = secondScreenGeometry.x() + secondScreenGeometry.width() / 2 - this->geometry().width() / 2;
-//            int y = secondScreenGeometry.y() + secondScreenGeometry.height() / 2 - this->geometry().height() / 2;
+    //            int x = secondScreenGeometry.x() + secondScreenGeometry.width() / 2 - this->geometry().width() / 2;
+    //            int y = secondScreenGeometry.y() + secondScreenGeometry.height() / 2 - this->geometry().height() / 2;
 
-//            qDebug() << "secondScreenGeometry: " << QPoint(x, y);
-//            this->setGeometry(x, y, this->width(), this->height());
-//        }
-//    });
+    //            qDebug() << "secondScreenGeometry: " << QPoint(x, y);
+    //            this->setGeometry(x, y, this->width(), this->height());
+    //        }
+    //    });
 }
 
 MainWindow::~MainWindow() {
@@ -71,11 +71,11 @@ void MainWindow::createComponents() {
     g->addWidget(m_statusButton, 0, 0);
     g->addWidget(m_setButton, 1, 0);
     g->addWidget(m_statusLabel, 1, 1, 1, 3);
-    connect(m_setButton, &QPushButton::clicked, this, [this](){
+    connect(m_setButton, &QPushButton::clicked, this, [this]() {
         m_statusLabel->setText("Start Record");
         m_recordMessage.clear();
     });
-    connect(m_clearButton, &QPushButton::clicked, this, [this](){
+    connect(m_clearButton, &QPushButton::clicked, this, [this]() {
         m_statusLabel->setText("Cleared");
         m_recordMessage.clear();
     });
@@ -90,7 +90,7 @@ void MainWindow::createConnections() {
 
     m_midi.listen();
 
-    QObject::connect(&QRtMidiWrapper::getInstance(), &QRtMidiWrapper::dataReceived, &QRtMidiWrapper::getInstance(), [this](double deltatime, QList<int> message, void *userData) {
+    QObject::connect(&m_midi, &QMidiIn::dataReceived, this, [this](double deltatime, QList<int> message, QMidiIn *sender) {
         QString s;
         QTextStream d(&s, QIODeviceBase::ReadWrite);
         unsigned int nBytes = message.size();
@@ -182,14 +182,12 @@ QPushButton *MainWindow::getButtonByIndex(int index) {
     return button;
 }
 
-QLabel* MainWindow::getLabelByIndex(int index)
-{
+QLabel *MainWindow::getLabelByIndex(int index) {
     QLabel *label = m_group[index - 1]->getLabel();
     return label;
 }
 
-QSlider* MainWindow::getSliderByIndex(int index)
-{
+QSlider *MainWindow::getSliderByIndex(int index) {
     QSlider *slider = m_group[index - 1]->getSlider();
     return slider;
 }

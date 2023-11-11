@@ -19,8 +19,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools Core Quick Widgets Xml Core5Compat)
 find_package(Qt${QT_VERSION_MAJOR} 6.6 REQUIRED COMPONENTS Widgets LinguistTools Core Quick Widgets Xml Core5Compat)
-find_package(robin_hood REQUIRED)
-find_package(RtMidi REQUIRED CONFIG)
+
+set(QMidi_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../QMidi")
+add_subdirectory(${QMidi_DIR} QMidi.out)
+#find_package(QMidi REQUIRED CONFIG)
 
 #qt_standard_project_setup(REQUIRES 6.6)
 file(GLOB ${PROJECT_NAME_UPPER}_1st_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src/1st/*")
@@ -82,8 +84,7 @@ endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt6::Core5Compat
-    robin_hood::robin_hood
-    RtMidi::rtmidi
+    QMidi::QMidi
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

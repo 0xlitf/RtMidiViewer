@@ -1,6 +1,5 @@
 
 #include "mainwindow.h"
-#include "qrtmidiwrapper.h"
 #include <QApplication>
 #include <QDir>
 #include <QFile>

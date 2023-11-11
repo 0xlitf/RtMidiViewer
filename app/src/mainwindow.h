@@ -12,7 +12,7 @@
 #include <QTextEdit>
 #include <QSplitter>
 #include <RtMidi.h>
-#include "qrtmidiwrapper.h"
+#include "qmidiin.h"
 #include "tinygroup.h"
 #include "widgetbase.h"
 
@@ -78,7 +78,7 @@ protected:
 
 private:
     // QPushButton* m_button = new QPushButton(this);
-    QRtMidiWrapper m_midi;
+    QMidiIn m_midi;
     QTextEdit* m_textEdit = nullptr;
     WidgetBase* m_rightWidget = nullptr;
     QSplitter* m_splitter = nullptr;
