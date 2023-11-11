@@ -10,6 +10,7 @@
 #include <QSplitter>
 #include <QToolBar>
 #include <QWidgetAction>
+#include "qmidimessage.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
@@ -90,7 +91,7 @@ void MainWindow::createConnections() {
 
     m_midi.listen();
 
-    QObject::connect(&m_midi, &QMidiIn::dataReceived, this, [this](double deltatime, QList<int> message, QMidiIn *sender) {
+    QObject::connect(&m_midi, &QMidiIn::dataReceived, this, [this](QMidiMessage message, QMidiIn *sender) {
         QString s;
         QTextStream d(&s, QIODeviceBase::ReadWrite);
         unsigned int nBytes = message.size();

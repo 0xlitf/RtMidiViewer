@@ -94,5 +94,5 @@ private:
     QLabel* m_statusLabel = new QLabel(this);
     WidgetBase* m_bottomWidget = nullptr;
 
-    QList<int> m_recordMessage;
+    QList<uint8_t> m_recordMessage;
 };
