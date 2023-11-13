@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include "qmidimessage.h"
 #include <QButtonGroup>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -10,7 +11,6 @@
 #include <QSplitter>
 #include <QToolBar>
 #include <QWidgetAction>
-#include "qmidimessage.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
@@ -91,45 +91,40 @@ void MainWindow::createConnections() {
 
     m_midi.listen();
 
-    QObject::connect(&m_midi, &QMidiIn::dataReceived, this, [this](QMidiMessage message, QMidiIn *sender) {
+    QObject::connect(&m_midi, &QMidiIn::midiMessageReceived, this, [this](QMidiMessage *message) {
         QString s;
         QTextStream d(&s, QIODeviceBase::ReadWrite);
-        unsigned int nBytes = message.size();
+        unsigned int nBytes = 3;
         if (nBytes > 0) {
-            d << "Timestamp: " << deltatime << ", Status: " << QString("%1").arg(message.at(0), 2, 16, QChar('0')) << "(int:" << message.at(0) << ")"
-              << ", Data1: " << QString("%1").arg(message.at(1), 2, 16, QChar('0')) << "(int:" << message.at(1) << ")"
-              << ", Data2: " << QString("%1").arg(message.at(2), 2, 16, QChar('0')) << "(int:" << message.at(2) << ")"
-              << ", Channel: " << QString("%1").arg((message.at(0) & 0x0F) + 1, 2, 16, QChar('0')) << "(int:" << (message.at(0) & 0x0F) + 1 << ")";
+            d << "Timestamp: " << message->getDeltaTime() << ", Status: " << QString("%1").arg(message->getStatus(), 2, 16, QChar('0')) << "(int:" << message->getStatus() << ")"
+              << ", Data1: " << QString("%1").arg(message->getRawMessage().at(1), 2, 16, QChar('0')) << "(int:" << message->getRawMessage().at(1) << ")"
+              << ", Data2: " << QString("%1").arg(message->getRawMessage().at(2), 2, 16, QChar('0')) << "(int:" << message->getRawMessage().at(2) << ")"
+              << ", Channel: " << QString("%1").arg(message->getChannel(), 2, 16, QChar('0')) << "(int:" << message->getChannel() << ")";
         }
 
         m_textEdit->append(s);
         qDebug().noquote() << s;
 
-        if (message.at(0) >= 224 && message.at(0) <= 232) {
-            if (m_sliderMap.contains(message.at(0))) {
-                auto slider = this->getSliderByIndex(m_sliderMap[message.at(0)]);
-                qDebug().noquote() << m_sliderMap[message.at(0)] << ", " << slider;
-                slider->setValue(message.at(1));
-            }
-        } else {
-            switch (message.at(0)) {
-                case 144: {
-                    if (m_buttonMap.contains(message.at(1))) {
-                        auto button = this->getButtonByIndex(m_buttonMap[message.at(1)]);
-                        qDebug().noquote() << m_buttonMap[message.at(1)] << ", " << button;
-                        button->setDown(message.at(2) != 0);
-                    }
-                } break;
-                case 176: {
-                    if (m_labelMap.contains(message.at(1))) {
-                        auto label = this->getLabelByIndex(m_labelMap[message.at(1)]);
-                        qDebug().noquote() << m_labelMap[message.at(1)] << ", " << label;
+        switch (message->getStatus()) {
+            case MIDI_NOTE_ON:
+            case MIDI_NOTE_OFF: { // 按钮 0x90==144
+                if (m_buttonMap.contains(message->getPitch())) {
+                    auto button = this->getButtonByIndex(m_buttonMap[message->getPitch()]);
+                    qDebug().noquote() << m_buttonMap[message->getPitch()] << ", " << button;
+                    button->setDown(message->getVelocity() != 0);
+                }
+            } break;
+            case MIDI_CONTROL_CHANGE: { // 顶部旋钮 0xB0==176
+                if (m_labelMap.contains(message->getControl())) {
+                    auto label = this->getLabelByIndex(m_labelMap[message->getControl()]);
+                    qDebug().noquote() << "message->getControl(): " << message->getControl() << ", " << m_labelMap[message->getControl()] << ", " << label;
 
-                        if (m_labelMap[message.at(1)] == 9) {
-                            label->setText(QString::number(message.at(2)));
+                    if (label) {
+                        if (m_labelMap[message->getControl()] == 9) {
+                            label->setText(QString::number(message->getValue()));
                         } else {
                             int v = label->text().toInt();
-                            switch (message.at(2)) {
+                            switch (message->getValue()) {
                                 case 1: { // ++
                                     ++v;
                                     if (v > 127) {
@@ -152,24 +147,41 @@ void MainWindow::createConnections() {
 
                             label->setText(QString::number(v));
                         }
+                    } else {
+                        qFatal() << "label == nullptr";
                     }
-                } break;
-                default: {
-                    qDebug().noquote() << "uncatch Status, " << message.at(0);
-                } break;
-            }
+                }
+            } break;
+            case MIDI_PITCH_BEND: { // 推杆 0xE0==224
+                if (m_sliderMap.contains(message->getChannel())) {
+                    auto slider = this->getSliderByIndex(m_sliderMap[message->getChannel()]);
+                    if (slider) {
+                        qDebug().noquote() << "MIDI_PITCH_BEND: " << m_sliderMap[message->getChannel() - 1] << ", " << slider << ", " << message->getValue();
+                        slider->setValue(message->getValue());
+                    } else {
+                        qFatal() << "slider == nullptr";
+                    }
+                }
+            } break;
+            default: {
+                qDebug().noquote() << "uncatch Status, " << message->getStatus();
+            } break;
         }
 
-        if (!m_recordMessage.isEmpty() && (m_recordMessage[0] == message[0]) && (m_recordMessage[1] == message[1])) {
-            m_statusButton->setDown(m_recordMessage[2] == message[2]);
+        if (!m_recordMessage.isEmpty() && m_recordMessage.getStatus() == message->getStatus() && m_recordMessage.getPitch() == message->getPitch()) {
+            m_statusButton->setDown(m_recordMessage.getVelocity() == message->getVelocity());
         }
 
         if (m_statusLabel->text() == "Start Record" && m_recordMessage.isEmpty()) {
-            m_recordMessage = message;
-            m_statusLabel->setText([this, &message]() {
-                return QString("%1, %2, %3").arg(QString::number(message[0]), QString::number(message[1]), QString::number(message[2]));
+            qDebug() << "Start Record";
+            m_recordMessage = *message;
+            qDebug() << "Start Record 2";
+            m_statusLabel->setText([this]() {
+                return QString("%1, %2, %3").arg(QString::number(m_recordMessage.getStatus()), QString::number(m_recordMessage.getPitch()), QString::number(m_recordMessage.getVelocity()));
             }());
         }
+
+        delete message;
     });
 }
 
@@ -184,11 +196,23 @@ QPushButton *MainWindow::getButtonByIndex(int index) {
 }
 
 QLabel *MainWindow::getLabelByIndex(int index) {
-    QLabel *label = m_group[index - 1]->getLabel();
+    QLabel *label = nullptr;
+    qDebug() << "index - 1: " << index - 1;
+    qDebug() << "m_group.count(): " << m_group.count();
+    if ((index - 1) >= 0 && (index - 1) < m_group.count()) {
+        label = m_group[index - 1]->getLabel();
+    } else {
+        qFatal() << "getLabelByIndex, index not valid";
+    }
     return label;
 }
 
 QSlider *MainWindow::getSliderByIndex(int index) {
-    QSlider *slider = m_group[index - 1]->getSlider();
+    QSlider *slider = nullptr;
+    if ((index - 1) >= 0 && (index - 1) < m_group.count()) {
+        slider = m_group[index - 1]->getSlider();
+    } else {
+        qFatal() << "getSliderByIndex, index not valid";
+    }
     return slider;
 }

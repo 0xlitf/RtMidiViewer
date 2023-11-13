@@ -1,5 +1,6 @@
 #include <QGridLayout>
 #include "tinygroup.h"
+#include "qmidimessage.h"
 
 TinyGroup::TinyGroup(QWidget *parent)
     : QWidget{parent}
@@ -16,8 +17,8 @@ void TinyGroup::createComponents() {
     g->addWidget(m_button1, 5, 0, 1, 1);
     g->addWidget(m_button2, 6, 0, 1, 1);
     g->addWidget(m_slider, 2, 1, 5, 2);
-    m_slider->setMaximum(127);
-    m_slider->setMinimum(0);
+    m_slider->setMaximum(MIDI_MAX_BEND);
+    m_slider->setMinimum(MIDI_MIN_BEND);
 
     m_button1->setStyleSheet("QPushButton:pressed { background-color: red; }");
     m_button2->setStyleSheet("QPushButton:pressed { background-color: green; }");
