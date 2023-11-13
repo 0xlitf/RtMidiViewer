@@ -108,3 +108,20 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/6th
     ${3rdParty_DIR}/rapidjson-1.1.0
 )
+
+if(WIN32)
+    set(CMAKE_EXECUTABLE_SUFFIX ".exe")
+    # NOTE: must set env "VCINSTALLDIR=C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\", the last "\" must NOT be omit
+    add_custom_command(
+        TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMENT "comment: run POST_BUILD script"
+        COMMAND ${CMAKE_COMMAND} -E echo "deploy: start cmd /k ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${deployfile} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
+        COMMAND cmd /k ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${deployfile} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}
+    )
+
+    add_custom_target(
+        RunAfterBuild ALL
+        DEPENDS ${PROJECT_NAME}
+    )
+endif()

@@ -82,19 +82,19 @@ function(print_subDirs)
     message("\n\n")
 endfunction()
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_bin)
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
 
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-    set(deployfile ${CMAKE_CURRENT_LIST_DIR}/windeployqt6.bat)
-    if (EXISTS ${deployfile})
+    set(deployfile windeployqt6.bat)
+    if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/${deployfile})
         message("***** deployfile: ${deployfile} *****")
-        file(COPY ${deployfile}
+        file(COPY ${CMAKE_CURRENT_LIST_DIR}/${deployfile}
              DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     else()
         message("***** deployfile not exist *****")
