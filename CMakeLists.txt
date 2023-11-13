@@ -85,12 +85,21 @@ endfunction()
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-#if(CMAKE_BUILD_TYPE MATCHES "Debug")
-#    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-#endif()
-#if(CMAKE_BUILD_TYPE MATCHES "Release")
-#    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin_release)
-#endif()
+
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+
+endif()
+
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+    set(deployfile ${CMAKE_CURRENT_LIST_DIR}/windeployqt6.bat)
+    if (EXISTS ${deployfile})
+        message("***** deployfile: ${deployfile} *****")
+        file(COPY ${deployfile}
+             DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    else()
+        message("***** deployfile not exist *****")
+    endif()
+endif()
 
 set(BINARY_DIR ${CMAKE_BINARY_DIR})
 
