@@ -44,7 +44,6 @@ void MainWindow::createComponents() {
     m_textEdit = new QTextEdit();
     m_textEdit->setFixedWidth(500);
     m_rightWidget = new WidgetBase();
-    m_splitter->addWidget(m_textEdit);
 
     m_bottomWidget = new WidgetBase();
 
@@ -54,6 +53,7 @@ void MainWindow::createComponents() {
     v->addWidget(m_bottomWidget);
 
     m_splitter->addWidget(container);
+    m_splitter->addWidget(m_textEdit);
 
     QHBoxLayout *h = new QHBoxLayout(m_rightWidget);
 
