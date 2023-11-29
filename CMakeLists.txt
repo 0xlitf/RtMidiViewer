@@ -82,24 +82,47 @@ function(print_subDirs)
     message("\n\n")
 endfunction()
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_bin)
+if(${CMAKE_GENERATOR} MATCHES "Visual Studio*")
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_lib/${CMAKE_SYSTEM_NAME})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_lib/${CMAKE_SYSTEM_NAME})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_bin/${CMAKE_SYSTEM_NAME})
 
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    set(EXACT_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_bin/${CMAKE_SYSTEM_NAME})
+else()
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_lib/${CMAKE_SYSTEM_NAME}/${CMAKE_BUILD_TYPE})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_lib/${CMAKE_SYSTEM_NAME}/${CMAKE_BUILD_TYPE})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_bin/${CMAKE_SYSTEM_NAME}/${CMAKE_BUILD_TYPE})
 
+    set(EXACT_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_bin/${CMAKE_SYSTEM_NAME}/${CMAKE_BUILD_TYPE})
 endif()
 
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+message(STATUS "***** EXACT_OUTPUT_DIRECTORY: ${EXACT_OUTPUT_DIRECTORY} *****")
+
+#if(CMAKE_BUILD_TYPE MATCHES "Debug")
+#    
+#endif()
+#if(CMAKE_BUILD_TYPE MATCHES "Release")
+#    
+#endif()
+
+#if(CMAKE_BUILD_TYPE MATCHES "Release")
     set(deployfile windeployqt6.bat)
     if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/${deployfile})
-        message("***** deployfile: ${deployfile} *****")
-        file(COPY ${CMAKE_CURRENT_LIST_DIR}/${deployfile}
-             DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+        message(STATUS "***** deployfile: ${deployfile} *****")
+        if(${CMAKE_GENERATOR} MATCHES "Visual Studio*")
+            file(COPY ${CMAKE_CURRENT_LIST_DIR}/${deployfile}
+                 DESTINATION ${EXACT_OUTPUT_DIRECTORY}/Debug)
+            file(COPY ${CMAKE_CURRENT_LIST_DIR}/${deployfile}
+                 DESTINATION ${EXACT_OUTPUT_DIRECTORY}/Release)
+        else()
+            file(COPY ${CMAKE_CURRENT_LIST_DIR}/${deployfile}
+                 DESTINATION ${EXACT_OUTPUT_DIRECTORY}/)
+        endif()
+
     else()
-        message("***** deployfile not exist *****")
+        message(STATUS "***** deployfile not exist *****")
     endif()
-endif()
+#endif()
 
 set(BINARY_DIR ${CMAKE_BINARY_DIR})
 
